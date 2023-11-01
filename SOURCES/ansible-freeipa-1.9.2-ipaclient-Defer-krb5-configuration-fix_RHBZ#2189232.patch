@@ -1,0 +1,152 @@
+From 0ec89eb53cf8771b34528ec210b2614370d9b662 Mon Sep 17 00:00:00 2001
+From: Thomas Woerner <twoerner@redhat.com>
+Date: Thu, 23 Mar 2023 18:13:08 +0100
+Subject: [PATCH] ipaclient: ipaclient_setup_nss also needs krb_name parameter
+
+With the fix to defer creating the final krb5.conf on clients a bug has
+been introduced with ipaclient_setup_nss: The krb_name parameter that
+points to the temporary krb5 configuration was not added to the module.
+
+With a properly configured DNS (like for example IPA DNS) the krb TXT
+records have been present in the DNS configuration. These have been used
+automatically as a fallback and broke server affinity for the client.
+Without the TXT records creating the IPA NSS database failed with
+ "Cannot find KDC for realm ..".
+
+The krb_name parameter has been added to ipaclient_setup_nss and is also
+properly set in tasks/install.yml.
+---
+ roles/ipaclient/library/ipaclient_setup_nss.py | 8 ++++++++
+ roles/ipaclient/tasks/install.yml              | 1 +
+ 2 files changed, 9 insertions(+)
+
+diff --git a/roles/ipaclient/library/ipaclient_setup_nss.py b/roles/ipaclient/library/ipaclient_setup_nss.py
+index 74ca9d4..0e8c658 100644
+--- a/roles/ipaclient/library/ipaclient_setup_nss.py
++++ b/roles/ipaclient/library/ipaclient_setup_nss.py
+@@ -152,6 +152,10 @@ options:
+       The dist of nss_ldap or nss-pam-ldapd files if sssd is disabled
+     required: yes
+     type: dict
++  krb_name:
++    description: The krb5 config file name
++    type: str
++    required: yes
+ author:
+     - Thomas Woerner (@t-woerner)
+ '''
+@@ -167,6 +171,7 @@ EXAMPLES = '''
+     subject_base: O=EXAMPLE.COM
+     principal: admin
+     ca_enabled: yes
++    krb_name: /tmp/tmpkrb5.conf
+ '''
+ 
+ RETURN = '''
+@@ -218,6 +223,7 @@ def main():
+             no_krb5_offline_passwords=dict(required=False, type='bool'),
+             no_dns_sshfp=dict(required=False, type='bool', default=False),
+             nosssd_files=dict(required=True, type='dict'),
++            krb_name=dict(required=True, type='str'),
+         ),
+         supports_check_mode=False,
+     )
+@@ -268,6 +274,8 @@ def main():
+     options.sssd = not options.no_sssd
+     options.no_ac = False
+     nosssd_files = module.params.get('nosssd_files')
++    krb_name = module.params.get('krb_name')
++    os.environ['KRB5_CONFIG'] = krb_name
+ 
+     # pylint: disable=invalid-name
+     CCACHE_FILE = paths.IPA_DNS_CCACHE
+diff --git a/roles/ipaclient/tasks/install.yml b/roles/ipaclient/tasks/install.yml
+index 662f09a..1dc6fdf 100644
+--- a/roles/ipaclient/tasks/install.yml
++++ b/roles/ipaclient/tasks/install.yml
+@@ -382,6 +382,7 @@
+               | default(ipasssd_no_krb5_offline_passwords) }}"
+         no_dns_sshfp: "{{ ipaclient_no_dns_sshfp }}"
+         nosssd_files: "{{ result_ipaclient_test.nosssd_files }}"
++        krb_name: "{{ result_ipaclient_temp_krb5.krb_name }}"
+ 
+     - name: Install - Configure SSH and SSHD
+       ipaclient_setup_ssh:
+-- 
+2.39.2
+
+From 10d072a8c42e6aa91485661d02b31f79bcc89fc0 Mon Sep 17 00:00:00 2001
+From: Thomas Woerner <twoerner@redhat.com>
+Date: Fri, 24 Mar 2023 12:40:32 +0100
+Subject: [PATCH] ipaclient: ipaclient_fix_ca also needs krb_name parameter
+
+With the fix to defer creating the final krb5.conf on clients a bug has
+been introduced with ipaclient_fix_ca: The krb_name parameter that
+points to the temporary krb5 configuration was not added to the module
+
+Without this the server affinity is broken for allow_repair and additionally
+ipaclient_fix_ca could fail if krb5 configuration needs to be repraied
+and also CA needs to be fixed.
+
+The krb_name parameter has been added to ipaclient_fix_ca and is also
+properly set in tasks/install.yml.
+---
+ roles/ipaclient/library/ipaclient_fix_ca.py | 8 ++++++++
+ roles/ipaclient/tasks/install.yml           | 1 +
+ 2 files changed, 9 insertions(+)
+
+diff --git a/roles/ipaclient/library/ipaclient_fix_ca.py b/roles/ipaclient/library/ipaclient_fix_ca.py
+index 238b316..ede8d56 100644
+--- a/roles/ipaclient/library/ipaclient_fix_ca.py
++++ b/roles/ipaclient/library/ipaclient_fix_ca.py
+@@ -54,6 +54,10 @@ options:
+       the host entry will not be changed on the server
+     type: bool
+     required: yes
++  krb_name:
++    description: The krb5 config file name
++    type: str
++    required: yes
+ author:
+     - Thomas Woerner (@t-woerner)
+ '''
+@@ -65,6 +69,7 @@ EXAMPLES = '''
+     realm: EXAMPLE.COM
+     basedn: dc=example,dc=com
+     allow_repair: yes
++    krb_name: /tmp/tmpkrb5.conf
+ '''
+ 
+ RETURN = '''
+@@ -87,6 +92,7 @@ def main():
+             realm=dict(required=True, type='str'),
+             basedn=dict(required=True, type='str'),
+             allow_repair=dict(required=True, type='bool'),
++            krb_name=dict(required=True, type='str'),
+         ),
+     )
+ 
+@@ -98,6 +104,8 @@ def main():
+     realm = module.params.get('realm')
+     basedn = module.params.get('basedn')
+     allow_repair = module.params.get('allow_repair')
++    krb_name = module.params.get('krb_name')
++    os.environ['KRB5_CONFIG'] = krb_name
+ 
+     env = {'PATH': SECURE_PATH}
+     fstore = sysrestore.FileStore(paths.IPA_CLIENT_SYSRESTORE)
+diff --git a/roles/ipaclient/tasks/install.yml b/roles/ipaclient/tasks/install.yml
+index 1dc6fdf..7ff2c39 100644
+--- a/roles/ipaclient/tasks/install.yml
++++ b/roles/ipaclient/tasks/install.yml
+@@ -346,6 +346,7 @@
+         realm: "{{ result_ipaclient_test.realm }}"
+         basedn: "{{ result_ipaclient_test.basedn }}"
+         allow_repair: "{{ ipaclient_allow_repair }}"
++        krb_name: "{{ result_ipaclient_temp_krb5.krb_name }}"
+       when: not ipaclient_on_master | bool and
+             result_ipaclient_test_keytab.krb5_keytab_ok and
+             not result_ipaclient_test_keytab.ca_crt_exists
+-- 
+2.39.2
+
