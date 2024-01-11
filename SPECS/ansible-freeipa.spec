@@ -7,15 +7,11 @@
 
 Summary: Roles and playbooks to deploy FreeIPA servers, replicas and clients
 Name: ansible-freeipa
-Version: 1.9.2
-Release: 3%{?dist}
+Version: 1.11.1
+Release: 1%{?dist}
 URL: https://github.com/freeipa/ansible-freeipa
-License: GPLv3+
+License: GPL-3.0-or-later
 Source: https://github.com/freeipa/ansible-freeipa/archive/v%{version}.tar.gz#/%{name}-%{version}.tar.gz
-Patch1: ansible-freeipa-1.9.2-paclient-Fix-allow_repair-with-removed-krb5.conf-an_RHBZ#2189235.patch
-Patch2: ansible-freeipa-1.9.2-ipaclient-Defer-creating-the-final-krb5.conf-on-clients_RHBZ#2189238.patch
-Patch3: ansible-freeipa-1.9.2-ipaclient-Defer-krb5-configuration-fix_RHBZ#2189238.patch
-Patch4: ansible-freeipa-1.9.2-Fix-typo-in-ipapwpolicy.py_RHBZ#2218187.patch
 BuildArch: noarch
 
 %description
@@ -41,6 +37,7 @@ Features
 - Modules for automount map management
 - Modules for config management
 - Modules for delegation management
+- Modules for certificate management
 - Modules for dns config management
 - Modules for dns forwarder management
 - Modules for dns record management
@@ -117,10 +114,6 @@ to get the needed requrements to run the tests.
 %prep
 %setup -q
 # Do not create backup files with patches
-%patch1 -p1
-%patch2 -p1
-%patch3 -p1
-%patch4 -p1
 
 # Fix python modules and module utils:
 # - Remove shebang
@@ -128,12 +121,14 @@ to get the needed requrements to run the tests.
 for i in roles/ipa*/library/*.py roles/ipa*/module_utils/*.py plugins/*/*.py;
 do
     sed -i '1{/\/usr\/bin\/python*/d;}' $i
+    sed -i '1{/\/usr\/bin\/env python*/d;}' $i
     chmod a-x $i
 done
 
 for i in utils/*.py utils/new_module utils/changelog utils/ansible-doc-test;
 do
     sed -i '{s@/usr/bin/python*@%{python}@}' $i
+    sed -i '{s@/usr/bin/env python*@%{python}@}' $i
 done
 
 
@@ -184,15 +179,54 @@ cp -rp tests %{buildroot}%{_datadir}/ansible-freeipa/
 %{_datadir}/ansible-freeipa/requirements-tests.txt
 
 %changelog
-* Wed Jul  5 2023 Thomas Woerner <twoerner@redhat.com> - 1.9.2-3
-- Fix maxsequence handling in ipapwpolicy module
-  Resolves: RHBZ#2218187
+* Mon Jul 24 2023 Thomas Woerner <twoerner@redhat.com> - 1.11.1-1
+- Update to version 1.11.1
+  https://github.com/freeipa/ansible-freeipa/releases/tag/v1.11.1
+  Resolves: RHBZ#2170371
+- ipaautomountmap: add support for indirect maps
+  Resolves: RHBZ#2050158
+- ipauser: Add support to modify GECOS field
+  Resolves: RHBZ#2168022
+- ipauser: Add support for parameter "street"
+  Resolves: RHBZ#2215532
+- ipauser: Add support for SMB attributes
+  Resolves: RHBZ#2215534
+- ipauser: Support for External IdP attributes
+  Resolves: RHBZ#2215539
+- Fix handling of ipapwpolicy attributes usercheck and dictcheck
+  Resolves: RHBZ#2215543
+- Update authtypes authind
+  Resolves: RHBZ#2215540
 
-* Mon Apr 24 2023 Thomas Woerner <twoerner@redhat.com> - 1.9.2-2
+* Mon Jun 12 2023 Thomas Woerner <twoerner@redhat.com> - 1.11.0-1
+- Update to version 1.11.0
+  https://github.com/freeipa/ansible-freeipa/releases/tag/v1.11.0
+  Resolves: RHBZ#2170371
+- Multiple service management
+  Resolves: RHBZ#2175769
+- New ipacert module
+  Resolves: RHBZ#2127906
+- Fix maxsequence handling in ipapwpolicy module
+  Resolves: RHBZ#2214295
+
+* Wed Apr  5 2023 Thomas Woerner <twoerner@redhat.com> - 1.10.0-1
+- Update to version 1.10.0
+  https://github.com/freeipa/ansible-freeipa/releases/tag/v1.10.0
+  Resolves: RHBZ#2170371
+- ipareplica/server: Enable removal from domain with undeployment
+  Resolves: RHBZ#2127901
+- ipagroup: Allow multiple group management
+  Resolves: RHBZ#2175762
+- ipaserver: Allow deployments with random serial numbers
+  Resolves: RHBZ#2127904
+- ipagroup: Fix ensuring external group members (without trust-ad)
+  Resolves: RHBZ#2183820
+- ipaclient: Add subid option to select the sssd profile with-subid
+  Resolves: RHBZ#2175766
 - ipaclient: Fix allow_repair with removed krb5.conf and DNS lookup
-  Resolves: RHBZ#2189235
-- ipaclient: Defer creating the final krb5.conf on clients
-  Resolves: RHBZ#2189238
+  Resolves: RHBZ#1759785
+- ipaclient: Keep server affinity while deploying as long as possible
+  Resolves: RHBZ#2175755
 
 * Tue Jan 31 2023 Thomas Woerner <twoerner@redhat.com> - 1.9.2-1
 - Update to version 1.9.2
