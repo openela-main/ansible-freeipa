@@ -1,0 +1,78 @@
+From 1a7b279d78374598d0330718c81c93048d54dd7c Mon Sep 17 00:00:00 2001
+From: Jacob Cutright <cutrightjm@stl.sh>
+Date: Wed, 26 Apr 2023 17:32:50 -0400
+Subject: [PATCH] Fix typo in ipapwpolicy.py
+
+The 'maxsequence' attribute was never applied as there was a typo when
+it was set. By fixing the field name, 'maxsequence' is correclty set.
+
+The failure was not seen before due to missing tests. The tests will be
+added in a separate PR.
+---
+ plugins/modules/ipapwpolicy.py | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/plugins/modules/ipapwpolicy.py b/plugins/modules/ipapwpolicy.py
+index 3a3eeed..557702f 100644
+--- a/plugins/modules/ipapwpolicy.py
++++ b/plugins/modules/ipapwpolicy.py
+@@ -197,7 +197,7 @@ def gen_args(module,
+     if maxrepeat is not None:
+         _args["ipapwdmaxrepeat"] = maxrepeat
+     if maxsequence is not None:
+-        _args["ipapwdmaxrsequence"] = maxsequence
++        _args["ipapwdmaxsequence"] = maxsequence
+     if dictcheck is not None:
+         if module.ipa_check_version("<", "4.9.10"):
+             # Allowed values: "TRUE", "FALSE", ""
+-- 
+2.40.1
+
+From d04a12e522e4ef9d23673916afb9e57ed032c56e Mon Sep 17 00:00:00 2001
+From: Thomas Woerner <twoerner@redhat.com>
+Date: Thu, 27 Apr 2023 09:15:09 +0200
+Subject: [PATCH] pwpolicy test: Fix maxsequence test
+
+The maxsequence test was testing maxrepeat. Therefore the typo reported
+with https://github.com/freeipa/ansible-freeipa/pull/1081 was never
+seen.
+
+The test has been fixed.
+---
+ tests/pwpolicy/test_pwpolicy.yml | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
+
+diff --git a/tests/pwpolicy/test_pwpolicy.yml b/tests/pwpolicy/test_pwpolicy.yml
+index 871406f..83f1763 100644
+--- a/tests/pwpolicy/test_pwpolicy.yml
++++ b/tests/pwpolicy/test_pwpolicy.yml
+@@ -223,7 +223,7 @@
+       ipapwpolicy:
+         ipaadmin_password: SomeADMINpassword
+         ipaapi_context: "{{ ipa_context | default(omit) }}"
+-        maxrepeat: 4
++        maxsequence: 4
+       register: result
+       failed_when: not result.changed or result.failed
+ 
+@@ -231,7 +231,7 @@
+       ipapwpolicy:
+         ipaadmin_password: SomeADMINpassword
+         ipaapi_context: "{{ ipa_context | default(omit) }}"
+-        maxrepeat: 4
++        maxsequence: 4
+       register: result
+       failed_when: result.changed or result.failed
+ 
+@@ -239,7 +239,7 @@
+       ipapwpolicy:
+         ipaadmin_password: SomeADMINpassword
+         ipaapi_context: "{{ ipa_context | default(omit) }}"
+-        maxrepeat: 0
++        maxsequence: 0
+       register: result
+       failed_when: not result.changed or result.failed
+ 
+-- 
+2.40.1
+
