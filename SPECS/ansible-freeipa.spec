@@ -7,7 +7,7 @@
 
 Summary: Roles and playbooks to deploy FreeIPA servers, replicas and clients
 Name: ansible-freeipa
-Version: 1.11.1
+Version: 1.12.1
 Release: 1%{?dist}
 URL: https://github.com/freeipa/ansible-freeipa
 License: GPL-3.0-or-later
@@ -51,7 +51,11 @@ Features
 - Modules for hbacsvcgroup management
 - Modules for host management
 - Modules for hostgroup management
+- Modules for idoverridegroup management
+- Modules for idoverrideuser management
+- Modules for idp management
 - Modules for idrange management
+- Modules for idview management
 - Modules for location management
 - Modules for netgroup management
 - Modules for permission management
@@ -89,7 +93,7 @@ Supported Distributions
 Requirements
 
   Controller
-  - Ansible version: 2.8+ (ansible-freeipa is an Ansible Collection)
+  - Ansible version: 2.13+
 
   Node
   - Supported FreeIPA version (see above)
@@ -182,6 +186,48 @@ cp -rp tests %{buildroot}%{_datadir}/ansible-freeipa/
 %{_datadir}/ansible-freeipa/requirements-tests.txt
 
 %changelog
+* Mon Feb 12 2024 Thomas Woerner <twoerner@redhat.com> - 1.12.1-1
+- Update to version 1.12.1
+  https://github.com/freeipa/ansible-freeipa/releases/tag/v1.12.1
+  Resolves: RHEL-13744
+- ipauser module lacks the "rename" field.
+  Resolves: RHEL-4962
+- Add missing support for rename in ipagroup module
+  Resolves: RHEL-13758
+- The IDP module does not support the modification of IDP options
+  Resolves: RHEL-17954
+- The IDP module does not support resetting IDP options
+  Resolves: RHEL-17957
+- ipauser is not idempotent when random is defined
+  Resolves: RHEL-19123
+- ipasudorule: Allow setting groups for runasuser
+  Resolves: RHEL-19130
+- Idempotency fixes
+  Resolves: RHEL-19132
+- ipadnszone: Add support for per-zone privilege delegation
+  Resolves: RHEL-19134
+- Handle data type or empty string in module_utils
+  Resolves: RHEL-19136
+
+* Tue Nov 28 2023 Thomas Woerner <twoerner@redhat.com> - 1.12.0-2
+- Fix test_pwpolicy for https://pagure.io/freeipa/issue/9297
+  Related: RHEL-13744
+
+* Mon Nov 27 2023 Thomas Woerner <twoerner@redhat.com> - 1.12.0-1
+- Update to version 1.12.0
+  https://github.com/freeipa/ansible-freeipa/releases/tag/v1.12.0
+  Resolves: RHEL-13744
+- New idoverridegroup management module.
+  Resolves: RHEL-16937
+- New idoverrideuser management module.
+  Resolves: RHEL-16942
+- New idview management module.
+  Resolves: RHEL-16934
+- New idp management module.
+  Resolves: RHEL-16939
+- idoverride{user,group}: Fix delete_continue with state absent
+  Resolves: RHEL-16680
+
 * Mon Jul 24 2023 Thomas Woerner <twoerner@redhat.com> - 1.11.1-1
 - Update to version 1.11.1
   https://github.com/freeipa/ansible-freeipa/releases/tag/v1.11.1
