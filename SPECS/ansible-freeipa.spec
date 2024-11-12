@@ -5,17 +5,23 @@
 
 %global python %{__python3}
 
+%global collection_namespace freeipa
+%global collection_name ansible_freeipa
+%global ansible_collections_dir %{_datadir}/ansible/collections/ansible_collections
+
 Summary: Roles and playbooks to deploy FreeIPA servers, replicas and clients
 Name: ansible-freeipa
-Version: 1.12.1
+Version: 1.13.2
 Release: 1%{?dist}
 URL: https://github.com/freeipa/ansible-freeipa
 License: GPL-3.0-or-later
 Source: https://github.com/freeipa/ansible-freeipa/archive/v%{version}.tar.gz#/%{name}-%{version}.tar.gz
 BuildArch: noarch
 %if 0%{?fedora} >= 35 || 0%{?rhel} >= 9
-Requires: ansible-core
+Requires: ansible-core >= 2.15.0
 %endif
+BuildRequires: ansible-core
+BuildRequires: python
 
 %description
 Ansible roles to install and uninstall FreeIPA servers, replicas and clients,
@@ -34,6 +40,7 @@ Features
 - Repair mode for clients
 - Backup and restore, also to and from controller
 - Smartcard setup for servers and clients
+- Inventory plugin freeipa
 - Modules for automembership rule management
 - Modules for automount key management
 - Modules for automount location management
@@ -118,10 +125,17 @@ Please have a look at %{_datadir}/ansible-freeipa/requirements-tests.txt
 to get the needed requrements to run the tests.
 
 
+%package collection
+Summary: %{collection_namespace}.%{collection_name} collection
+Provides: ansible-collection-%{collection_namespace}-%{collection_name} = %{version}-%{release}
+
+%description collection
+The %{collection_namespace}.%{collection_name} collection, including tests.
+
+
 %prep
 %setup -q
 # Do not create backup files with patches
-
 # Fix python modules and module utils:
 # - Remove shebang
 # - Remove execute flag
@@ -164,6 +178,11 @@ cp -rp utils %{buildroot}%{_datadir}/ansible-freeipa/
 install -m 755 -d %{buildroot}%{_datadir}/ansible-freeipa/tests
 cp -rp tests %{buildroot}%{_datadir}/ansible-freeipa/
 
+# Create collection and install to %{buildroot}%{ansible_collections_dir}
+# ansible-galaxy collection install creates ansible_collections directory
+# automatically in given path, therefore /..
+utils/build-galaxy-release.sh -o "%{version}" -p %{buildroot}%{ansible_collections_dir}/.. %{collection_namespace} %{collection_name}
+
 %files
 %license COPYING
 %{_datadir}/ansible/roles/ipaserver
@@ -175,6 +194,7 @@ cp -rp tests %{buildroot}%{_datadir}/ansible-freeipa/
 %{_datadir}/ansible/plugins/doc_fragments
 %{_datadir}/ansible/plugins/module_utils
 %{_datadir}/ansible/plugins/modules
+%{_datadir}/ansible/plugins/inventory
 %doc README*.md
 %doc playbooks
 %{_datadir}/ansible-freeipa/requirements.txt
@@ -185,7 +205,32 @@ cp -rp tests %{buildroot}%{_datadir}/ansible-freeipa/
 %{_datadir}/ansible-freeipa/tests
 %{_datadir}/ansible-freeipa/requirements-tests.txt
 
+%files collection
+%dir %{ansible_collections_dir}/%{collection_namespace}
+%{ansible_collections_dir}/%{collection_namespace}/%{collection_name}
+
 %changelog
+* Mon Jul  1 2024 Thomas Woerner <twoerner@redhat.com> - 1.13.2-1
+- Update to version 1.13.2
+  https://github.com/freeipa/ansible-freeipa/releases/tag/v1.13.2
+  Resolves: RHEL-35565
+- Convert input certificates
+  Resolves: RHEL-44614
+- Fix rolesdeployment with IPA 4.12
+  Resolves: RHEL-40869
+
+* Tue May 28 2024 Thomas Woerner <twoerner@redhat.com> - 1.13.1-1
+- Update to version 1.13.1
+  https://github.com/freeipa/ansible-freeipa/releases/tag/v1.13.0
+  https://github.com/freeipa/ansible-freeipa/releases/tag/v1.13.1
+  Resolves: RHEL-35565
+- New inventory plugin
+  Resolves: RHEL-35541
+- Enable batch command as backend
+  Resolves: RHEL-38943
+- New collection sub package
+  Resolves: RHEL-38931
+
 * Mon Feb 12 2024 Thomas Woerner <twoerner@redhat.com> - 1.12.1-1
 - Update to version 1.12.1
   https://github.com/freeipa/ansible-freeipa/releases/tag/v1.12.1
