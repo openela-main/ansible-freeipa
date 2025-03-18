@@ -12,13 +12,13 @@
 Summary: Roles and playbooks to deploy FreeIPA servers, replicas and clients
 Name: ansible-freeipa
 Version: 1.13.2
-Release: 1%{?dist}
+Release: 2%{?dist}
 URL: https://github.com/freeipa/ansible-freeipa
 License: GPL-3.0-or-later
 Source: https://github.com/freeipa/ansible-freeipa/archive/v%{version}.tar.gz#/%{name}-%{version}.tar.gz
 BuildArch: noarch
 %if 0%{?fedora} >= 35 || 0%{?rhel} >= 9
-Requires: ansible-core >= 2.15.0
+Requires: ansible-core >= 1:2.14.0
 %endif
 BuildRequires: ansible-core
 BuildRequires: python
@@ -100,7 +100,7 @@ Supported Distributions
 Requirements
 
   Controller
-  - Ansible version: 2.13+
+  - Ansible version: 2.14+
 
   Node
   - Supported FreeIPA version (see above)
@@ -210,6 +210,10 @@ utils/build-galaxy-release.sh -o "%{version}" -p %{buildroot}%{ansible_collectio
 %{ansible_collections_dir}/%{collection_namespace}/%{collection_name}
 
 %changelog
+* Wed Mar  5 2024 Thomas Woerner <twoerner@redhat.com> - 1.13.2-2
+- Change minimum requirement for ansible-core to 1:2.14.0
+  Resolves: RHEL-69820
+
 * Mon Jul  1 2024 Thomas Woerner <twoerner@redhat.com> - 1.13.2-1
 - Update to version 1.13.2
   https://github.com/freeipa/ansible-freeipa/releases/tag/v1.13.2
