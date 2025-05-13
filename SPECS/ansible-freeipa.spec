@@ -11,8 +11,8 @@
 
 Summary: Roles and playbooks to deploy FreeIPA servers, replicas and clients
 Name: ansible-freeipa
-Version: 1.13.2
-Release: 2%{?dist}
+Version: 1.14.5
+Release: 1%{?dist}
 URL: https://github.com/freeipa/ansible-freeipa
 License: GPL-3.0-or-later
 Source: https://github.com/freeipa/ansible-freeipa/archive/v%{version}.tar.gz#/%{name}-%{version}.tar.gz
@@ -20,7 +20,7 @@ BuildArch: noarch
 %if 0%{?fedora} >= 35 || 0%{?rhel} >= 9
 Requires: ansible-core >= 1:2.14.0
 %endif
-BuildRequires: ansible-core
+BuildRequires: ansible-core >= 1:2.14.0
 BuildRequires: python
 
 %description
@@ -210,9 +210,52 @@ utils/build-galaxy-release.sh -o "%{version}" -p %{buildroot}%{ansible_collectio
 %{ansible_collections_dir}/%{collection_namespace}/%{collection_name}
 
 %changelog
-* Wed Mar  5 2024 Thomas Woerner <twoerner@redhat.com> - 1.13.2-2
-- Change minimum requirement for ansible-core to 1:2.14.0
-  Resolves: RHEL-69820
+* Tue Feb 11 2025 Thomas Woerner <twoerner@redhat.com> - 1.14.5-1
+- Update to version 1.14.5
+  Resolves: RHEL-67566
+- ipa* deployment roles: Hotfix for dns_over_tls (Freeipa#7343)
+  Resolves: RHEL-78230
+
+* Tue Feb  4 2025 Thomas Woerner <twoerner@redhat.com> - 1.14.4-1
+- Update to version 1.14.4
+  Resolves: RHEL-67566
+- Fix management of AD objects for ipagroup
+  Resolves: RHEL-25009
+
+* Mon Feb  3 2025 Thomas Woerner <twoerner@redhat.com> - 1.14.3-1
+- Update to version 1.14.3
+  Resolves: RHEL-67566
+- Fix management of AD objects for ipagroup
+  Resolves: RHEL-25009
+
+* Fri Dec 13 2024 Thomas Woerner <twoerner@redhat.com> - 1.14.2-1
+- Update to version 1.14.2
+  https://github.com/freeipa/ansible-freeipa/releases/tag/v1.14.2
+  Resolves: RHEL-67566
+- ipareplica: Pass ipareplica_ip_addresses to ipaclient
+  Resolves: RHEL-40227
+- ipagroup: Correctly handle externalmember in member actions
+  Resolves: RHEL-25009
+- ipasudorule: Evaluate all members related to hosts and users
+  Resolves: RHEL-68439
+- ipacert: Correctly handle removFromCRL revocation
+  Resolves: RHEL-70016
+- Collection: No more role module duplication
+  Resolves: RHEL-71123
+
+* Wed Nov 27 2024 Thomas Woerner <twoerner@redhat.com> - 1.14.1-1
+- Update to version 1.14.1
+  https://github.com/freeipa/ansible-freeipa/releases/tag/v1.14.1
+  Resolves: RHEL-67566
+- Fix requirements for ansible-core
+  Resolves: RHEL-69146
+
+* Fri Nov 22 2024 Thomas Woerner <twoerner@redhat.com> - 1.14.0-1
+- Update to version 1.14.0
+  https://github.com/freeipa/ansible-freeipa/releases/tag/v1.14.0
+  Resolves: RHEL-67566
+- Multi sudorule management with the ipasudorule module
+  Resolves: RHEL-61431
 
 * Mon Jul  1 2024 Thomas Woerner <twoerner@redhat.com> - 1.13.2-1
 - Update to version 1.13.2
