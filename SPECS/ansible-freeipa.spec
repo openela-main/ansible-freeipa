@@ -12,10 +12,11 @@
 Summary: Roles and playbooks to deploy FreeIPA servers, replicas and clients
 Name: ansible-freeipa
 Version: 1.14.5
-Release: 1%{?dist}
+Release: 2%{?dist}
 URL: https://github.com/freeipa/ansible-freeipa
 License: GPL-3.0-or-later
 Source: https://github.com/freeipa/ansible-freeipa/archive/v%{version}.tar.gz#/%{name}-%{version}.tar.gz
+Patch0: ansible-freeipa-1.14.5-34dc758-Fix-CA-certificates-iteration.patch
 BuildArch: noarch
 %if 0%{?fedora} >= 35 || 0%{?rhel} >= 9
 Requires: ansible-core >= 1:2.14.0
@@ -136,6 +137,7 @@ The %{collection_namespace}.%{collection_name} collection, including tests.
 %prep
 %setup -q
 # Do not create backup files with patches
+%patch0 -p1
 # Fix python modules and module utils:
 # - Remove shebang
 # - Remove execute flag
@@ -210,6 +212,10 @@ utils/build-galaxy-release.sh -o "%{version}" -p %{buildroot}%{ansible_collectio
 %{ansible_collections_dir}/%{collection_namespace}/%{collection_name}
 
 %changelog
+* Mon Apr 28 2025 Thomas Woerner <twoerner@redhat.com> - 1.14.5-2
+- Fix IPA requires unique CA certificate subject names
+  Resolves: RHEL-88216
+
 * Tue Feb 11 2025 Thomas Woerner <twoerner@redhat.com> - 1.14.5-1
 - Update to version 1.14.5
   Resolves: RHEL-67566
