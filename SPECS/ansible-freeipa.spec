@@ -12,11 +12,12 @@
 Summary: Roles and playbooks to deploy FreeIPA servers, replicas and clients
 Name: ansible-freeipa
 Version: 1.14.5
-Release: 2%{?dist}
+Release: 3%{?dist}
 URL: https://github.com/freeipa/ansible-freeipa
 License: GPL-3.0-or-later
 Source: https://github.com/freeipa/ansible-freeipa/archive/v%{version}.tar.gz#/%{name}-%{version}.tar.gz
 Patch0: ansible-freeipa-1.14.5-34dc758-Fix-CA-certificates-iteration.patch
+Patch1: ansible-freeipa-1.14.5-5b3a472-ipaclient-Fix-AttributeError-by-defaulting-dns_over_.patch
 BuildArch: noarch
 %if 0%{?fedora} >= 35 || 0%{?rhel} >= 9
 Requires: ansible-core >= 1:2.14.0
@@ -138,6 +139,7 @@ The %{collection_namespace}.%{collection_name} collection, including tests.
 %setup -q
 # Do not create backup files with patches
 %patch0 -p1
+%patch1 -p1
 # Fix python modules and module utils:
 # - Remove shebang
 # - Remove execute flag
@@ -212,6 +214,10 @@ utils/build-galaxy-release.sh -o "%{version}" -p %{buildroot}%{ansible_collectio
 %{ansible_collections_dir}/%{collection_namespace}/%{collection_name}
 
 %changelog
+* Tue Jun 17 2025 Thomas Woerner <twoerner@redhat.com> - 1.14.5-3
+- ipaclient: Fix AttributeError by defaulting dns_over_tls to False
+  Resolves: RHEL-92891
+
 * Mon Apr 28 2025 Thomas Woerner <twoerner@redhat.com> - 1.14.5-2
 - Fix IPA requires unique CA certificate subject names
   Resolves: RHEL-88216
