@@ -11,13 +11,11 @@
 
 Summary: Roles and playbooks to deploy FreeIPA servers, replicas and clients
 Name: ansible-freeipa
-Version: 1.14.5
-Release: 3%{?dist}
+Version: 1.15.1
+Release: 1%{?dist}
 URL: https://github.com/freeipa/ansible-freeipa
 License: GPL-3.0-or-later
 Source: https://github.com/freeipa/ansible-freeipa/archive/v%{version}.tar.gz#/%{name}-%{version}.tar.gz
-Patch0: ansible-freeipa-1.14.5-34dc758-Fix-CA-certificates-iteration.patch
-Patch1: ansible-freeipa-1.14.5-5b3a472-ipaclient-Fix-AttributeError-by-defaulting-dns_over_.patch
 BuildArch: noarch
 %if 0%{?fedora} >= 35 || 0%{?rhel} >= 9
 Requires: ansible-core >= 1:2.14.0
@@ -138,8 +136,6 @@ The %{collection_namespace}.%{collection_name} collection, including tests.
 %prep
 %setup -q
 # Do not create backup files with patches
-%patch0 -p1
-%patch1 -p1
 # Fix python modules and module utils:
 # - Remove shebang
 # - Remove execute flag
@@ -187,6 +183,22 @@ cp -rp tests %{buildroot}%{_datadir}/ansible-freeipa/
 # automatically in given path, therefore /..
 utils/build-galaxy-release.sh -o "%{version}" -p %{buildroot}%{ansible_collections_dir}/.. %{collection_namespace} %{collection_name}
 
+mkdir -p %{buildroot}%{ansible_collections_dir}/redhat/rhel_idm
+cd %{buildroot}%{ansible_collections_dir}/redhat/rhel_idm
+mkdir plugins
+ln -s ../../../%{collection_namespace}/%{collection_name}/plugins/doc_fragments plugins/
+
+ln -s ../../../%{collection_namespace}/%{collection_name}/plugins/modules plugins/
+ln -s ../../../%{collection_namespace}/%{collection_name}/plugins/module_utils plugins/
+mkdir plugins/inventory
+sed -e "s/freeipa.ansible_freeipa/redhat.rhel_idm/" ../../%{collection_namespace}/%{collection_name}/plugins/inventory/freeipa.py > plugins/inventory/freeipa.py
+ln -s ../../%{collection_namespace}/%{collection_name}/roles .
+ln -s ../../%{collection_namespace}/%{collection_name}/tests .
+ln -s ../../%{collection_namespace}/%{collection_name}/playbooks .
+mkdir meta
+sed -e "s/freeipa.ansible_freeipa/redhat.rhel_idm/" ../../%{collection_namespace}/%{collection_name}/meta/runtime.yml > meta/runtime.yml
+
+
 %files
 %license COPYING
 %{_datadir}/ansible/roles/ipaserver
@@ -212,15 +224,32 @@ utils/build-galaxy-release.sh -o "%{version}" -p %{buildroot}%{ansible_collectio
 %files collection
 %dir %{ansible_collections_dir}/%{collection_namespace}
 %{ansible_collections_dir}/%{collection_namespace}/%{collection_name}
+%dir %{ansible_collections_dir}/redhat
+%{ansible_collections_dir}/redhat/rhel_idm
 
 %changelog
-* Tue Jun 17 2025 Thomas Woerner <twoerner@redhat.com> - 1.14.5-3
-- ipaclient: Fix AttributeError by defaulting dns_over_tls to False
-  Resolves: RHEL-92891
+* Fri Aug  1 2025 Thomas Woerner <twoerner@redhat.com> - 1.15.1-1
+- Update to version 1.15.1
+  Resolves: RHEL-104652
+- ipaclient: client_dns has new statestore arg with IPA change e6445b8
+  Resolves: RHEL-106558
 
-* Mon Apr 28 2025 Thomas Woerner <twoerner@redhat.com> - 1.14.5-2
-- Fix IPA requires unique CA certificate subject names
-  Resolves: RHEL-88216
+* Fri Jul 25 2025 Thomas Woerner <twoerner@redhat.com> - 1.15.0-1
+- Update to version 1.15.0
+  Resolves: RHEL-104652
+- ipaclient: Fix AttributeError by defaulting dns_over_tls to False
+  Resolves: RHEL-92844
+- Provide compatibility for AAH naming
+  Resolves: RHEL-94769
+- Ensure ipaidrange required parameters are correct on recent versions of IPA
+  Resolves: RHEL-79820
+- Add support for DNS-over-TLS for ipaclient, ipareplica and ipaserver roles
+  Resolves: RHEL-78636
+
+* Tue May  6 2025 Thomas Woerner <twoerner@redhat.com> - 1.14.6-1
+- Update to version 1.14.6
+- Fix CA certificates iteration in ipaclient role
+  Resolves: RHEL-88206
 
 * Tue Feb 11 2025 Thomas Woerner <twoerner@redhat.com> - 1.14.5-1
 - Update to version 1.14.5
