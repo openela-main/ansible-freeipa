@@ -11,7 +11,7 @@
 
 Summary: Roles and playbooks to deploy FreeIPA servers, replicas and clients
 Name: ansible-freeipa
-Version: 1.15.1
+Version: 1.16.0
 Release: 1%{?dist}
 URL: https://github.com/freeipa/ansible-freeipa
 License: GPL-3.0-or-later
@@ -69,6 +69,7 @@ Features
 - Modules for idview management
 - Modules for location management
 - Modules for netgroup management
+- Modules for passkeyconfig management
 - Modules for permission management
 - Modules for privilege management
 - Modules for pwpolicy management
@@ -81,6 +82,7 @@ Features
 - Modules for sudocmd management
 - Modules for sudocmdgroup management
 - Modules for sudorule management
+- Modules for sysaccount management
 - Modules for topology management
 - Modules for trust management
 - Modules for user management
@@ -175,6 +177,17 @@ sed -e "s/freeipa.ansible_freeipa/redhat.rhel_idm/" ../../%{collection_namespace
 
 
 %changelog
+* Mon Jan 12 2026 Thomas Woerner <twoerner@redhat.com> - 1.16.0-1
+- Update to version 1.16.0
+  https://github.com/freeipa/ansible-freeipa/releases/tag/v1.16.0
+  Resolves: RHEL-139147
+- Add suppport for passkey management
+  Resolves: RHEL-139258
+- Add suppport for sysaccount management
+  Resolves: RHEL-140600
+- ipadnsrecord: Allow to set any IP address if create_reverse is false
+  Resolves: RHEL-140606
+
 * Fri Aug  1 2025 Thomas Woerner <twoerner@redhat.com> - 1.15.1-1
 - Update to version 1.15.1
   Resolves: RHEL-104653
